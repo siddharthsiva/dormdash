@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
-from app.db.database import Base
+from ..db.database import Base
 
 class Request(Base):
     __tablename__ = "requests"
