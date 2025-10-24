@@ -1,8 +1,8 @@
-def check_badges(user):
-    badges = []
-    if user.karma >= 100:
-        badges.append("Karma King")
-    if user.xp >= 500:
-        badges.append("XP Master")
-    # Add more badge logic here
-    return badges
+def get_badge(xp: int, karma: int):
+    if xp > 100 and karma > 50:
+        return "Campus Hero"
+    elif karma > 30:
+        return "Reliable Rider"
+    elif xp > 50:
+        return "Speed Demon"
+    return "Newbie"

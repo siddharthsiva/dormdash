@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..db.database import SessionLocal
-from ..models.user import User
+from ..crud.user import get_leaderboard
 
 router = APIRouter()
 
@@ -12,6 +12,6 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/users/{user_id}")
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    return db.query(User).filter(User.id == user_id).first()
+@router.get("/users/leaderboard")
+def leaderboard(sort: str = "xp", db: Session = Depends(get_db)):
+    return get_leaderboard(db, sort)

@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from typing import Optional
 from ..db.database import SessionLocal
 from ..models.request import Request
-from pydantic import BaseModel
+from ..crud.request import mark_completed
+from ..services.xp_engine import apply_xp_and_karma
 
 router = APIRouter()
-
-class RequestCreate(BaseModel):
-    title: str
-    description: str
 
 def get_db():
     db = SessionLocal()
@@ -17,14 +15,18 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/requests")
-def create_request(request: RequestCreate, db: Session = Depends(get_db)):
-    db_request = Request(**request.dict())
-    db.add(db_request)
-    db.commit()
-    db.refresh(db_request)
-    return db_request
-
 @router.get("/requests")
-def list_requests(db: Session = Depends(get_db)):
-    return db.query(Request).all()
+def get_requests(dorm: Optional[str] = None, is_completed: Optional[bool] = None, db: Session = Depends(get_db)):
+    query = db.query(Request)
+    if dorm:
+        query = query.filter(Request.location == dorm)
+    if is_completed is not None:
+        query = query.filter(Request.is_completed == is_completed)
+    return query.all()
+
+@router.patch("/requests/{id}/complete")
+def complete_request(id: int, fulfiller_id: int, db: Session = Depends(get_db)):
+    req = db.query(Request).filter(Request.id == id).first()
+    mark_completed(db, id, fulfiller_id)
+    apply_xp_and_karma(db, fulfiller_id, req.urgency)
+    return {"message": "Request fulfilled"}
